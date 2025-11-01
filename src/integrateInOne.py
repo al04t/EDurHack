@@ -1,19 +1,21 @@
-# ...existing code...
 import sys
 from pathlib import Path
 import pandas as pd
 
+
 def _find_column(cols, candidates):
-    for c in candidates:
-        for col in cols:
-            if c.lower() in col.lower():
-                return col
+    cols_l = [c.lower() for c in cols]
+    for cand in candidates:
+        for i, col in enumerate(cols_l):
+            if cand.lower() in col:
+                return list(cols)[i]
     return None
 
-def integrate_data(dataset_root: Path = None):
+
+def integrate_data(dataset_root: Path | str | None = None):
     dataset_root = Path(dataset_root) if dataset_root else Path(__file__).resolve().parent.parent / "Dataset"
     clean_dir = dataset_root / "cleanData"
-    pop_file = clean_dir / "populationData.csv"
+    pop_file = clean_dir / "populationDataPeople.csv"
 
     sightings_files = sorted(clean_dir.glob("sightings_by_grid_per_year_*.csv"))
     if not sightings_files:
@@ -21,79 +23,88 @@ def integrate_data(dataset_root: Path = None):
         return
 
     if not pop_file.exists():
-        print("populationData.csv not found in", clean_dir)
+        print("Population file not found:", pop_file)
         return
 
-    # load and concat all sightings
+    # load and concat sightings
     dfs = []
     for f in sightings_files:
-        df = pd.read_csv(f)
-        dfs.append(df)
+        dfs.append(pd.read_csv(f))
     sightings = pd.concat(dfs, ignore_index=True)
 
-    # identify key columns
-    lat_col = _find_column(sightings.columns, ["latitude", "lat", "latitudeGrid"])
-    lon_col = _find_column(sightings.columns, ["longitude", "lon", "longitudeGrid"])
+    # detect columns in sightings
+    lat_s_col = _find_column(sightings.columns, ["latitudeGrid", "lat", "latitude"])
+    lon_s_col = _find_column(sightings.columns, ["longitudeGrid", "lon", "longitude"])
     year_col = _find_column(sightings.columns, ["year"])
-    sight_col = _find_column(sightings.columns, ["sighting", "count", "sightingCount", "sightings"])
+    sight_col = _find_column(sightings.columns, ["sightingCount", "sighting_count", "count", "sightings"])
 
-    if not all([lat_col, lon_col, year_col, sight_col]):
+    if not all([lat_s_col, lon_s_col, sight_col]):
         print("Missing expected columns in sightings. Found:", list(sightings.columns))
         return
 
-    # aggregate yearly counts per grid (in case files contain month-level)
-    sightings_agg = sightings.groupby([lat_col, lon_col, year_col], dropna=False)[sight_col].sum().reset_index()
+    # aggregate sightings to yearly-per-grid if needed
+    if year_col:
+        sightings_agg = sightings.groupby([lat_s_col, lon_s_col, year_col], dropna=False)[sight_col].sum().reset_index()
+    else:
+        sightings_agg = sightings.groupby([lat_s_col, lon_s_col], dropna=False)[sight_col].sum().reset_index()
+        year_col = None
 
-    # load population data
+    # load population
     pop = pd.read_csv(pop_file)
-    pop_lat = _find_column(pop.columns, ["latitude", "lat", "latitudeGrid"])
-    pop_lon = _find_column(pop.columns, ["longitude", "lon", "longitudeGrid"])
-    pop_year = _find_column(pop.columns, ["year"])
+    # population columns expected: latitudeDecimal, longitundinalDecimal (or longitudeDecimal), density, population
+    lat_p_col = _find_column(pop.columns, ["latitudedecimal", "latitude", "lat"])
+    lon_p_col = _find_column(pop.columns, ["longitundinaldecimal", "longitudedecimal", "longitude", "lon"])
     pop_col = _find_column(pop.columns, ["population", "pop", "total"])
-
-    if not pop_col or not pop_lat or not pop_lon:
-        print("Population file missing expected columns. Found:", list(pop.columns))
+    if not all([lat_p_col, lon_p_col, pop_col]):
+        print("Missing expected columns in population file. Found:", list(pop.columns))
         return
 
-    # choose merge keys
-    if pop_year:
-        merge_keys = [lat_col, lon_col, year_col]
-        # ensure population year column name matches sightings year column name
-        pop = pop.rename(columns={pop_lat: lat_col, pop_lon: lon_col, pop_year: year_col, pop_col: "population"})
-    else:
-        merge_keys = [lat_col, lon_col]
-        pop = pop.rename(columns={pop_lat: lat_col, pop_lon: lon_col, pop_col: "population"})
-
-    # normalize column types for merge
-    for c in [lat_col, lon_col]:
-        sightings_agg[c] = sightings_agg[c].astype(float)
-        pop[c] = pop[c].astype(float)
-
-    if year_col in merge_keys:
+    # normalize merge keys: round to 1 decimal to match grid rounding used earlier
+    sightings_agg = sightings_agg.copy()
+    sightings_agg["lat"] = sightings_agg[lat_s_col].astype(float).round(1)
+    sightings_agg["lon"] = sightings_agg[lon_s_col].astype(float).round(1)
+    if year_col:
         sightings_agg[year_col] = sightings_agg[year_col].astype(int)
-        pop[year_col] = pop[year_col].astype(int)
 
-    merged = sightings_agg.merge(pop, on=merge_keys, how="left", validate="m:1")
+    pop = pop.copy()
+    pop["lat"] = pop[lat_p_col].astype(float).round(1)
+    pop["lon"] = pop[lon_p_col].astype(float).round(1)
+    pop["population"] = pd.to_numeric(pop[pop_col], errors="coerce")
+
+    # keep only needed pop cols (if there are duplicates, keep first by lat/lon)
+    pop_unique = pop.groupby(["lat", "lon"], as_index=False).agg({"population": "sum"})
+
+    # merge
+    if year_col:
+        merged = sightings_agg.merge(pop_unique, on=["lat", "lon"], how="left", validate="m:1")
+    else:
+        merged = sightings_agg.merge(pop_unique, on=["lat", "lon"], how="left", validate="m:1")
 
     # compute adjusted metric: sightings per 1000 people
-    merged["population"] = pd.to_numeric(merged["population"], errors="coerce")
-    merged["sightings_per_1000"] = merged.apply(
-        lambda r: (r[sight_col] / r["population"] * 1000) if pd.notna(r["population"]) and r["population"] > 0 else pd.NA,
-        axis=1
-    )
+    def adj(row):
+        popv = row.get("population")
+        sc = row.get(sight_col)
+        if pd.isna(popv) or popv == 0:
+            return pd.NA
+        return float(sc) / float(popv) * 1000.0
+
+    merged["sightings_per_1000"] = merged.apply(adj, axis=1)
 
     out_dir = clean_dir
-    # save per year and combined
-    years = sorted(merged[year_col].dropna().unique())
-    for y in years:
-        out = merged[merged[year_col] == int(y)].copy()
-        out_path = out_dir / f"adjusted_sightings_by_grid_per_year_{int(y)}.csv"
-        out.to_csv(out_path, index=False)
-        print("Saved", out_path)
-
+    # save combined file
     combined_path = out_dir / "adjusted_sightings_all_years.csv"
     merged.to_csv(combined_path, index=False)
-    print("Saved combined file:", combined_path)
+    print("Saved combined adjusted file:", combined_path)
+
+    # save per-year if year exists
+    if year_col:
+        years = sorted(merged[year_col].dropna().unique())
+        for y in years:
+            out = merged[merged[year_col] == int(y)].copy()
+            out_path = out_dir / f"adjusted_sightings_by_grid_per_year_{int(y)}.csv"
+            out.to_csv(out_path, index=False)
+            print("Saved", out_path)
+
 
 if __name__ == "__main__":
     integrate_data()
