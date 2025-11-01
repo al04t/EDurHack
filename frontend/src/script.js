@@ -9,7 +9,7 @@ yearSlider.oninput = function() {
 }
 
 function fetchYear(year) {
-    address = '../../Dataset/cleanData/woodchucks_with_wood_volume.csv';
+    address = '/Dataset/cleanData/woodchucks_with_wood_volume.csv';
     console.log('Fetching from:', address);
     fetch(address)
         .then(response => response.text())
