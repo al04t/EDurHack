@@ -42,4 +42,6 @@ df_merged['total_wood_chucked_lbs'] = (
     df_merged['wood_chucked_per_woodchuck_lbs'] * df_merged['estimated_woodchuck_population']
 )
 
+df_merged = df_merged[df_merged['year'] != 2025]
+
 df_merged.to_csv('../Dataset/cleanData/woodchucks_with_wood_volume.csv', index=False)
