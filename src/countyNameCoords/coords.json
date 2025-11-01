@@ -1,0 +1,270 @@
+{
+  "Adams": {
+    "lat": 39.9,
+    "long": -77.2
+  },
+  "Allegheny": {
+    "lat": 40.5,
+    "long": -80.0
+  },
+  "Armstrong": {
+    "lat": 40.8,
+    "long": -79.5
+  },
+  "Beaver": {
+    "lat": 40.7,
+    "long": -80.3
+  },
+  "Bedford": {
+    "lat": 40.1,
+    "long": -78.4
+  },
+  "Berks": {
+    "lat": 40.4,
+    "long": -75.9
+  },
+  "Blair": {
+    "lat": 40.4,
+    "long": -78.4
+  },
+  "Bradford": {
+    "lat": 41.8,
+    "long": -76.5
+  },
+  "Bucks": {
+    "lat": 40.3,
+    "long": -75.1
+  },
+  "Butler": {
+    "lat": 40.9,
+    "long": -79.9
+  },
+  "Cambria": {
+    "lat": 40.5,
+    "long": -78.7
+  },
+  "Cameron": {
+    "lat": 41.4,
+    "long": -78.2
+  },
+  "Carbon": {
+    "lat": 40.9,
+    "long": -75.8
+  },
+  "Centre": {
+    "lat": 40.9,
+    "long": -77.8
+  },
+  "Chester": {
+    "lat": 40.0,
+    "long": -75.7
+  },
+  "Clarion": {
+    "lat": 41.2,
+    "long": -79.4
+  },
+  "Clearfield": {
+    "lat": 40.9,
+    "long": -78.4
+  },
+  "Clinton": {
+    "lat": 41.2,
+    "long": -77.5
+  },
+  "Columbia": {
+    "lat": 41.0,
+    "long": -76.4
+  },
+  "Crawford": {
+    "lat": 41.7,
+    "long": -80.1
+  },
+  "Cumberland": {
+    "lat": 40.2,
+    "long": -77.1
+  },
+  "Dauphin": {
+    "lat": 40.3,
+    "long": -76.8
+  },
+  "Delaware": {
+    "lat": 39.9,
+    "long": -75.4
+  },
+  "Elk": {
+    "lat": 41.4,
+    "long": -78.6
+  },
+  "Erie": {
+    "lat": 42.1,
+    "long": -80.1
+  },
+  "Fayette": {
+    "lat": 39.9,
+    "long": -79.7
+  },
+  "Forest": {
+    "lat": 41.5,
+    "long": -79.3
+  },
+  "Franklin": {
+    "lat": 40.0,
+    "long": -77.7
+  },
+  "Fulton": {
+    "lat": 40.0,
+    "long": -78.1
+  },
+  "Greene": {
+    "lat": 39.9,
+    "long": -80.2
+  },
+  "Huntingdon": {
+    "lat": 40.4,
+    "long": -78.0
+  },
+  "Indiana": {
+    "lat": 40.7,
+    "long": -79.1
+  },
+  "Jefferson": {
+    "lat": 41.1,
+    "long": -79.0
+  },
+  "Juniata": {
+    "lat": 40.6,
+    "long": -77.4
+  },
+  "Lackawanna": {
+    "lat": 41.4,
+    "long": -75.7
+  },
+  "Lancaster": {
+    "lat": 40.1,
+    "long": -76.3
+  },
+  "Lawrence": {
+    "lat": 41.0,
+    "long": -80.4
+  },
+  "Lebanon": {
+    "lat": 40.3,
+    "long": -76.4
+  },
+  "Lehigh": {
+    "lat": 40.6,
+    "long": -75.5
+  },
+  "Luzerne": {
+    "lat": 41.2,
+    "long": -76.0
+  },
+  "Lycoming": {
+    "lat": 41.3,
+    "long": -77.0
+  },
+  "McKean": {
+    "lat": 41.8,
+    "long": -78.6
+  },
+  "Mercer": {
+    "lat": 41.3,
+    "long": -80.3
+  },
+  "Mifflin": {
+    "lat": 40.6,
+    "long": -77.7
+  },
+  "Monroe": {
+    "lat": 41.1,
+    "long": -75.3
+  },
+  "Montgomery": {
+    "lat": 40.2,
+    "long": -75.3
+  },
+  "Montour": {
+    "lat": 41.0,
+    "long": -76.6
+  },
+  "Northampton": {
+    "lat": 40.7,
+    "long": -75.3
+  },
+  "Northumberland": {
+    "lat": 40.9,
+    "long": -76.7
+  },
+  "Perry": {
+    "lat": 40.4,
+    "long": -77.2
+  },
+  "Philadelphia": {
+    "lat": 40.0,
+    "long": -75.1
+  },
+  "Pike": {
+    "lat": 41.3,
+    "long": -75.0
+  },
+  "Potter": {
+    "lat": 41.8,
+    "long": -77.9
+  },
+  "Schuylkill": {
+    "lat": 40.7,
+    "long": -76.2
+  },
+  "Snyder": {
+    "lat": 40.8,
+    "long": -77.0
+  },
+  "Somerset": {
+    "lat": 40.0,
+    "long": -79.0
+  },
+  "Sullivan": {
+    "lat": 41.5,
+    "long": -76.5
+  },
+  "Susquehanna": {
+    "lat": 41.8,
+    "long": -75.8
+  },
+  "Tioga": {
+    "lat": 41.8,
+    "long": -77.2
+  },
+  "Union": {
+    "lat": 40.9,
+    "long": -77.0
+  },
+  "Venango": {
+    "lat": 41.4,
+    "long": -79.7
+  },
+  "Warren": {
+    "lat": 41.8,
+    "long": -79.3
+  },
+  "Washington": {
+    "lat": 40.2,
+    "long": -80.1
+  },
+  "Wayne": {
+    "lat": 41.6,
+    "long": -75.3
+  },
+  "Westmoreland": {
+    "lat": 40.3,
+    "long": -79.5
+  },
+  "Wyoming": {
+    "lat": 41.6,
+    "long": -75.9
+  },
+  "York": {
+    "lat": 39.9,
+    "long": -76.7
+  }
+}
