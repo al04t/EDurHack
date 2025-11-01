@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import math
+import numpy as np
 import pandas as pd
 
 
@@ -75,8 +76,6 @@ def integrate_data(dataset_root: Path | str | None = None,
     group_cols = [lat_s_col, lon_s_col]
     if year_col:
         group_cols.append(year_col)
-    if month_col:
-        group_cols.append(month_col)
 
     sightings_agg = sightings.groupby(group_cols, dropna=False)[sight_col].sum().reset_index()
 
@@ -151,14 +150,51 @@ def integrate_data(dataset_root: Path | str | None = None,
     pop["lon"] = pop[lon_p_col].astype(float).round(1)
     pop["population"] = pd.to_numeric(pop[pop_col], errors="coerce")
 
+    # If population file has no year but sightings have years, try to create
+    # per-year population using a proxy yearly index (harvest/population index).
+    if "year" not in pop.columns and "year" in sightings_agg.columns:
+        proxy = clean_dir / "population_data_woodchucks.csv"
+        if proxy.exists():
+            try:
+                df_proxy = pd.read_csv(proxy)
+                proxy_year_col = _find_column(df_proxy.columns, ["year", "yr"])
+                proxy_val_col = _find_column(df_proxy.columns, ["harvest", "index", "value", "total", "count"])
+                if proxy_year_col and proxy_val_col:
+                    df_proxy[proxy_year_col] = df_proxy[proxy_year_col].astype(int)
+                    df_proxy[proxy_val_col] = pd.to_numeric(df_proxy[proxy_val_col], errors="coerce")
+                    baseline_year = int(df_proxy[proxy_year_col].min())
+                    base_val = float(df_proxy.loc[df_proxy[proxy_year_col] == baseline_year, proxy_val_col].mean())
+                    if base_val and base_val > 0:
+                        mult_map = {int(r[proxy_year_col]): float(r[proxy_val_col]) / base_val for _, r in df_proxy.iterrows() if pd.notna(r[proxy_val_col])}
+                        years = sorted(sightings_agg["year"].dropna().unique())
+                        expanded = []
+                        for y in years:
+                            m = mult_map.get(int(y), 1.0)
+                            tmp = pop.copy()
+                            tmp["year"] = int(y)
+                            tmp["population"] = tmp["population"].astype(float) * m
+                            expanded.append(tmp)
+                        if expanded:
+                            pop = pd.concat(expanded, ignore_index=True)
+            except Exception:
+                pass
+
   
-    pop_unique = pop.groupby(["lat", "lon"], as_index=False).agg({"population": "sum"})
-
-
-    if year_col:
-        merged = sightings_agg.merge(pop_unique, on=["lat", "lon"], how="left", validate="m:1")
+    pop_year_col = _find_column(pop.columns, ["year", "yr"])
+    if pop_year_col:
+        try:
+            pop["year"] = pop[pop_year_col].astype(int)
+            pop_unique = pop.groupby(["lat", "lon", "year"], as_index=False).agg({"population": "sum"})
+        except Exception:
+            pop_unique = pop.groupby(["lat", "lon"], as_index=False).agg({"population": "sum"})
     else:
-        merged = sightings_agg.merge(pop_unique, on=["lat", "lon"], how="left", validate="m:1")
+        pop_unique = pop.groupby(["lat", "lon"], as_index=False).agg({"population": "sum"})
+
+    merge_keys = ["lat", "lon"]
+    if "year" in pop_unique.columns and "year" in sightings_agg.columns:
+        merge_keys.append("year")
+
+    merged = sightings_agg.merge(pop_unique, on=merge_keys, how="left", validate="m:1")
 
     def adj(row):
         popv = row.get("population")
@@ -280,15 +316,43 @@ def integrate_data(dataset_root: Path | str | None = None,
 
     out_dir = clean_dir
 
+    try:
+        merged["sightings"] = merged[sight_col]
+    except Exception:
+        merged["sightings"] = pd.NA
+
+    merged["presence"] = (merged["sightings"] > 0).astype(int)
+    merged["log_sightings"] = np.log1p(merged["sightings"].fillna(0).astype(float))
+    merged["log_estimated_population"] = np.log1p(merged["estimated_woodchuck_population"].fillna(0).astype(float))
+
+    merged = merged.reset_index(drop=True).reset_index()
+    if "year" in merged.columns:
+        neigh = merged[["index", "year", "latitude", "longitude", "estimated_woodchuck_population"]].copy()
+        join = neigh.merge(neigh, on="year", suffixes=("_a", "_b"))
+        mask = (join["latitude_a"].sub(join["latitude_b"]).abs() <= 0.1001) & (join["longitude_a"].sub(join["longitude_b"]).abs() <= 0.1001)
+        join = join[mask]
+        neigh_mean = join.groupby("index_a")["estimated_woodchuck_population_b"].mean().reset_index().rename(columns={"index_a": "index", "estimated_woodchuck_population_b": "neighbor_mean_estimate"})
+        merged = merged.merge(neigh_mean, on="index", how="left")
+    else:
+        neigh = merged[["index", "latitude", "longitude", "estimated_woodchuck_population"]].copy()
+        join = neigh.merge(neigh, how="cross", suffixes=("_a", "_b"))
+        mask = (join["latitude_a"].sub(join["latitude_b"]).abs() <= 0.1001) & (join["longitude_a"].sub(join["longitude_b"]).abs() <= 0.1001)
+        join = join[mask]
+        neigh_mean = join.groupby("index_a")["estimated_woodchuck_population_b"].mean().reset_index().rename(columns={"index_a": "index", "estimated_woodchuck_population_b": "neighbor_mean_estimate"})
+        merged = merged.merge(neigh_mean, on="index", how="left")
+
+    if "year" in merged.columns:
+        merged.sort_values(["latitude", "longitude", "year"], inplace=True)
+        merged["pct_change_year"] = merged.groupby(["latitude", "longitude"])["estimated_woodchuck_population"].pct_change().fillna(0)
+    else:
+        merged["pct_change_year"] = 0
+
+    merged["neighbor_mean_estimate"] = merged["neighbor_mean_estimate"].fillna(merged["estimated_woodchuck_population"]) 
+    merged = merged.drop(columns=["index"]).reset_index(drop=True)
+
     output_cols = ["latitude", "longitude", "estimated_woodchuck_population"]
     if "year" in merged.columns:
         output_cols.insert(0, "year")
-    if "month" in merged.columns:
-     
-        if "year" in merged.columns:
-            output_cols.insert(1, "month")
-        else:
-            output_cols.insert(0, "month")
 
     if "estimated_woodchuck_population_calibrated" in merged.columns and merged["estimated_woodchuck_population_calibrated"].notna().any():
         
@@ -313,6 +377,20 @@ def integrate_data(dataset_root: Path | str | None = None,
             per = per.dropna(subset=["estimated_woodchuck_population"])
             out_path = out_dir / f"adjusted_sightings_by_grid_per_year_{int(y)}_minimal.csv"
             per.to_csv(out_path, index=False)
+
+    # create a single aggregated file with rows for each year/lat/lon
+    if "year" in merged.columns:
+        agg_cols = ["year", "latitude", "longitude", "estimated_woodchuck_population"]
+        if "estimated_woodchuck_population_calibrated" in merged.columns:
+            agg_cols.append("estimated_woodchuck_population_calibrated")
+        agg_df = merged[[c for c in ["year", "latitude", "longitude", "estimated_woodchuck_population", "estimated_woodchuck_population_calibrated"] if c in merged.columns]].copy()
+        agg_df = agg_df.groupby(["year", "latitude", "longitude"], dropna=False).sum(numeric_only=True).reset_index()
+        agg_path = out_dir / "adjusted_sightings_by_grid_per_year_aggregated.csv"
+        try:
+            agg_df.to_csv(agg_path, index=False)
+            print("Saved aggregated per-year file:", agg_path)
+        except PermissionError as e:
+            print(f"Warning: could not write aggregated per-year file {agg_path}: {e}")
 
 
 
