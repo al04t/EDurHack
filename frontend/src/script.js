@@ -9,8 +9,9 @@ yearSlider.oninput = function() {
 }
 
 function fetchYear(year) {
-    address = 'Dataset/cleanData/woodchucks_with_wood_volume.csv';
+    address = '../../Dataset/cleanData/woodchucks_with_wood_volume.csv';
     fetch(address)
+    console.log('Fetching from:', address);
         .then(response => response.text())
         .then(csvContent => {
             Papa.parse(csvContent, {
