@@ -30,6 +30,38 @@ def integrate_data(dataset_root: Path | str | None = None,
     clean_dir = dataset_root / "cleanData"
     pop_file = clean_dir / "population_density_by_coords.csv"
 
+    # if the preferred population file doesn't exist, try to find alternatives
+    if not pop_file.exists():
+        print(f"Preferred population file not found: {pop_file}")
+        # look for plausible population/density files in cleanData and dirtyData
+        candidates = []
+        candidates += list(clean_dir.glob("*population*.csv"))
+        candidates += list(clean_dir.glob("*density*.csv"))
+        dirty_dir = dataset_root / "dirtyData"
+        if dirty_dir.exists():
+            candidates += list(dirty_dir.glob("*population*.csv"))
+            candidates += list(dirty_dir.glob("*density*.csv"))
+
+        # de-duplicate while preserving order
+        seen = set()
+        uniq = []
+        for p in candidates:
+            s = str(p).lower()
+            if s not in seen:
+                seen.add(s)
+                uniq.append(p)
+
+        if uniq:
+            pop_file = uniq[0]
+            print(f"Using population file: {pop_file}")
+        else:
+            available = list(clean_dir.iterdir()) if clean_dir.exists() else []
+            print("No population/density CSV found in cleanData or dirtyData.")
+            print("Files in cleanData:")
+            for f in available:
+                print(" -", f.name)
+            raise FileNotFoundError(f"No population file found. Expected {clean_dir / 'population_density_by_coords.csv'}")
+
     sightings_files = sorted(clean_dir.glob("sightings_by_grid_per_year_*.csv"))
 
     # load and concat sightings
@@ -40,7 +72,7 @@ def integrate_data(dataset_root: Path | str | None = None,
 
     # detect columns in sightings
     lat_s_col = _find_column(sightings.columns, ["latitudeGrid", "lat", "latitude"])
-    lon_s_col = _find_column(sightings.columns, ["longitudeGrid", "lon", "longitude"])
+    lon_s_col = _find_column(sightings.columns, ["longitudeGrid", "long", "longitude"])
     year_col = _find_column(sightings.columns, ["year"])
     month_col = _find_column(sightings.columns, ["month"])
     sight_col = _find_column(sightings.columns, ["sightingCount", "sighting_count", "count", "sightings"])
@@ -59,14 +91,59 @@ def integrate_data(dataset_root: Path | str | None = None,
     sightings_agg = sightings.groupby(group_cols, dropna=False)[sight_col].sum().reset_index()
 
     # load population
-    pop = pd.read_csv(pop_file)
-    # population columns expected: latitudeDecimal, longitundinalDecimal (or longitudeDecimal), density, population
-    lat_p_col = _find_column(pop.columns, ["latitudedecimal", "latitude", "lat"])
-    lon_p_col = _find_column(pop.columns, ["longitundinaldecimal", "longitudedecimal", "longitude", "lon"])
-    pop_col = _find_column(pop.columns, ["population", "pop", "total"])
-    if not all([lat_p_col, lon_p_col, pop_col]):
-        print("Missing expected columns in population file. Found:", list(pop.columns))
-        return
+    # Try to load a population/density file that contains lat/lon and a population column.
+    def _valid_pop_df(df: pd.DataFrame):
+        lat_c = _find_column(df.columns, ["latitudedecimal", "latitude", "lat", "latitudegrid"])
+        lon_c = _find_column(df.columns, ["longitundinaldecimal", "longitudedecimal", "longitude", "lon", "longitudegrid"])
+        pop_c = _find_column(df.columns, ["population", "pop", "total", "density", "people"])
+        return (lat_c, lon_c, pop_c)
+
+    pop = None
+    lat_p_col = lon_p_col = pop_col = None
+
+    # First try the selected pop_file, then try other common candidates
+    candidates = [pop_file]
+    # common filenames to try
+    candidates += [clean_dir / "population_density_people_by_coords.csv",
+                   clean_dir / "populationData.csv",
+                   clean_dir / "population_density_by_coords.csv",
+                   clean_dir / "population_data_woodchucks.csv",
+                   dataset_root / "dirtyData" / "Population-Density-Final.csv"]
+    # add any CSVs in clean_dir that look relevant
+    candidates += list(clean_dir.glob("*.csv"))
+
+    seen = set()
+    for p in candidates:
+        if p is None:
+            continue
+        sp = str(p).lower()
+        if sp in seen:
+            continue
+        seen.add(sp)
+        if not Path(p).exists():
+            continue
+        try:
+            df_try = pd.read_csv(p)
+        except Exception:
+            continue
+        lat_c, lon_c, pop_c = _valid_pop_df(df_try)
+        if lat_c and lon_c and pop_c:
+            pop = df_try
+            lat_p_col, lon_p_col, pop_col = lat_c, lon_c, pop_c
+            pop_file = p
+            print(f"Using population file: {pop_file}")
+            break
+
+    if pop is None:
+        # nothing suitable found; show available files and their columns to help the user
+        print("No suitable population/density CSV found. Checked these files (name -> columns):")
+        for p in sorted({str(x) for x in candidates if Path(x).exists()}):
+            try:
+                cols = pd.read_csv(p, nrows=0).columns.tolist()
+            except Exception:
+                cols = ["<unreadable>"]
+            print(f" - {Path(p).name}: {cols}")
+        raise FileNotFoundError("No population/density file with latitude, longitude and population/density columns was found.")
 
     # normalize merge keys: round to 1 decimal to match grid rounding used earlier
     sightings_agg = sightings_agg.copy()
