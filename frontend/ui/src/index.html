@@ -18,7 +18,7 @@
 <body>
 	<div class="sections">
 		<section class="hero">
-			<h1>How Much wood can a WoodChuck chuck if a Wood Chuck could chuck wood?</h1>
+			<h1>How much wood can a Woodchuck chuck if a Woodchuck could chuck wood?</h1>
 		</section>
 
 		<section id="dis_map">
@@ -42,13 +42,14 @@
 
 		<section id="dashboard">
 			<div class="dashboard">
-				<button id="dataButton">Chuck graph</button>
-				<div id="dashboardCoordControls" style="display:flex;justify-content:center;gap:12px;align-items:center;margin:8px 0;flex-wrap:wrap;">
-					<label for="dashLat" class="dashboard-label">Lat</label>
-					<input id="dashLat" class="dash-input" type="number" step="0.0001" placeholder="40.0" title="Press Enter to center, Esc to clear">
-					<label for="dashLon" class="dashboard-label">Lon</label>
-					<input id="dashLon" class="dash-input" type="number" step="0.0001" placeholder="-76.7" title="Press Enter to center, Esc to clear">
-					<div style="flex-basis:100%;height:0;"></div>
+				<div class="dashboard-controls-row">
+					<button id="dataButton">Chuck graph</button>
+					<div id="dashboardCoordControls" style="display:flex;justify-content:center;gap:12px;align-items:center;">
+						<label for="dashLat" class="dashboard-label">Lat</label>
+						<input id="dashLat" class="dash-input" type="number" step="0.0001" placeholder="40.0" title="Press Enter to center, Esc to clear">
+						<label for="dashLon" class="dashboard-label">Lon</label>
+						<input id="dashLon" class="dash-input" type="number" step="0.0001" placeholder="-76.7" title="Press Enter to center, Esc to clear">
+					</div>
 				</div>
 				<div id="wood_chucking_at" class="chart">
 					<canvas id="XYchart"></canvas>
@@ -57,7 +58,7 @@
 		</section>
 
 		<section id="mayTheChuckBe">
-			<button class="may-control" id="startFall">Start Rain</button>
+			<button class="may-control" id="startFall">Chuck</button>
 			<button class="may-control" id="stopFall" style="right:6rem;">Stop</button>
 			<div id="fallArea" aria-hidden="true"></div>
 			<div id="pileRoot" aria-hidden="true"></div>

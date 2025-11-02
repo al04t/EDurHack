@@ -2,6 +2,7 @@
 .html, body {
     height: 100%;
     margin: 0;
+    
 }
 
 .sections {
@@ -9,8 +10,9 @@
     overflow-y: auto;
     scroll-snap-type: y mandatory;
     scroll-behavior:smooth;
-    -webkit-overflow-scrolling: touch;
 }
+
+
 
 .sections > section {
     scroll-snap-align: start;
@@ -415,6 +417,17 @@
 .dashboard-label{ color: #F9F8EA; font-weight:700; margin-right:6px; }
 .dashboard-hint{ color: #F9F8EA; font-size:0.85rem; margin-top:6px; }
 
+.dashboard-controls-row{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom: 1rem;
+}
+
+#dashboardCoordControls{ display:flex; gap:12px; align-items:center; }
+
 
 @media (min-width: 1200px) {
     #sliderContainer { width: 50%; }
@@ -437,3 +450,4 @@
     pointer-events: none;
 }
 .drop-result.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
+
