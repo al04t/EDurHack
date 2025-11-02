@@ -1,7 +1,7 @@
 var yearSlider = document.getElementById("yearSlider");
 var output = document.getElementById("value");
-output.innerHTML = 2018;
-fetchYear(2018);
+output.innerHTML = yearSlider.value;
+fetchYear(yearSlider.value);
 
 yearSlider.oninput = function() {
     output.innerHTML = this.value
