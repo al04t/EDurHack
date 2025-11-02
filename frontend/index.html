@@ -20,9 +20,14 @@
             <div id="gradient"></div>
         </div>
         <div id="sliderContainer">
-        <p>Value: <span id="value"></span></p>
-            <input type="range" min="2018" max="2041" value="0" class="slider" id="yearSlider">
-            
+            <p>Year: <span id="value"></span></p>
+            <input type="range" min="2018" max="2041" value="2018" class="slider" id="yearSlider">
+        </div>
+        <div id="woodchuckDescriptorContainer">
+            <label for="woodchuckDescriptor">Describe the woodchucks:</label>
+            <textarea id="woodchuckDescriptor" placeholder="e.g., Woodchucks are feeling rather motivated" rows="3" cols="50"></textarea>
+            <button id="updateMultiplierBtn">Update Multiplier</button>
+            <p>Current Multiplier: <span id="multiplierValue">1.0</span></p>
         </div>
     </div>
     <script src="src/script.js"></script>

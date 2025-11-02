@@ -1,12 +1,58 @@
 var yearSlider = document.getElementById("yearSlider");
 var output = document.getElementById("value");
+var multiplierSpan = document.getElementById("multiplierValue");
+var woodchuckDescriptorInput = document.getElementById("woodchuckDescriptor");
+var updateMultiplierBtn = document.getElementById("updateMultiplierBtn");
+var currentMultiplier = 1.0;
+var dataObject = null;
+
 output.innerHTML = 2018;
 fetchYear(2018);
 
 yearSlider.oninput = function() {
-    output.innerHTML = this.value
-    fetchYear(this.value)
+    output.innerHTML = this.value;
+    fetchYear(this.value);
 }
+
+updateMultiplierBtn.addEventListener('click', async function() {
+    const descriptor = woodchuckDescriptorInput.value.trim();
+    
+    if (descriptor === "") {
+        currentMultiplier = 1.0;
+        multiplierSpan.innerHTML = currentMultiplier.toFixed(2);
+        fetchYear(yearSlider.value);
+        return;
+    }
+    
+    updateMultiplierBtn.disabled = true;
+    updateMultiplierBtn.innerHTML = "Loading...";
+    
+    try {
+        const response = await fetch('/api/get-multiplier', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ descriptor: descriptor })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentMultiplier = data.multiplier;
+            multiplierSpan.innerHTML = currentMultiplier.toFixed(2);
+            fetchYear(yearSlider.value);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to get multiplier from AI');
+    } finally {
+        updateMultiplierBtn.disabled = false;
+        updateMultiplierBtn.innerHTML = "Update Multiplier";
+    }
+});
 
 function fetchYear(year) {
     address = '/Dataset/cleanData/woodchucks_with_wood_volume_future.csv';
@@ -26,7 +72,7 @@ function fetchYear(year) {
                             var filteredData = {
                                 lat: dataObject[i].latitude,
                                 lng: dataObject[i].longitude,
-                                value: dataObject[i].total_wood_chucked_lbs
+                                value: dataObject[i].total_wood_chucked_lbs * currentMultiplier
                             }
                         testData.data.push(filteredData)
                         }
@@ -40,10 +86,10 @@ function fetchYear(year) {
 }
 
 var baseLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.{ext}', {
-	minZoom: 7,
-	maxZoom: 10,
-	attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-	ext: 'png'
+    minZoom: 7,
+    maxZoom: 10,
+    attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    ext: 'png'
 });
 
 var cfg = {
