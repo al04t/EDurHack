@@ -1,11 +1,22 @@
 var yearSlider = document.getElementById("yearSlider");
 var output = document.getElementById("value");
+var button = document.getElementById("dataButton");
 output.innerHTML = yearSlider.value;
+initialYear = Number(yearSlider.value);
+maxYear = Number(yearSlider.max);
 fetchYear(yearSlider.value);
+let yearSums = [];
 
 yearSlider.oninput = function() {
-    output.innerHTML = this.value
-    fetchYear(this.value)
+    output.innerHTML = this.value;
+    fetchYear(this.value);
+}
+
+button.onclick = async function() {
+    yearSums = await sumYears(initialYear);
+    plotXYchart(yearSums);
+    plotBARchart(yearSums);
+    otherBoxes(yearSums);
 }
 
 function fetchYear(year) {
@@ -37,6 +48,43 @@ function fetchYear(year) {
             });
         })
     .catch(error => console.error('Error reading CSV:', error));
+}
+
+async function sumYears(year) {
+    const promises = [];
+    for (let i = year; i <= maxYear; i = i + 20) {
+        console.log("iterate")
+        address = '/Dataset/cleanData/woodchuck_forecast_hundreds.csv';
+        console.log('Fetching from:', address);
+        const promise = fetch(address)
+            .then(response => response.text())
+            .then(csvContent => {
+                return new Promise((resolve, reject) => {
+                Papa.parse(csvContent, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        dataObject = results.data;
+                        var sum = 0;
+                        for (let j = 0; j < dataObject.length - 1; j++) {
+                            if (dataObject[j].year == i) {
+                                console.log("summing")
+                                sum = sum + dataObject[j].wood_chucked_per_woodchuck_lbs
+                            }
+                        }
+                        yearSums.push({year: i, sum: sum})
+                        resolve();
+                    }
+                });
+            })
+            })
+        .catch(error => console.error('Error reading CSV:', error));
+        promises.push(promise);
+    }
+
+    await Promise.all(promises);
+    yearSums.sort((a, b) => a.year - b.year);
+    return yearSums;
 }
 
 var baseLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.{ext}', {
@@ -112,3 +160,101 @@ var map = new L.Map('map', {
     zoom: 7,
     layers: [polygon, baseLayer, heatmapLayer]
 });
+
+function plotXYchart(list) {
+    const years = list.map(item => item.year);
+    const wood = list.map(item => item.sum);
+
+    const data = {
+        labels: years,
+        datasets: [{
+            label: 'Wood chucked in a specific area',
+            data: wood,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: false,
+        }]
+    };
+
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Wood chucked'
+                    }
+                }
+            }
+        }
+    };
+
+    let myChart = new Chart(
+        document.getElementById('XYchart'),
+        config
+    );
+}
+
+function plotBARchart(list) {
+    const years = list.map(item => item.year);
+    const yearsSorted = years.sort((a, b) => a - b);
+    const wood = list.map(item => item.sum);
+    const woodSorted = wood.sort((a, b) => a - b);
+
+    const data = {
+        labels: [yearsSorted[0], yearsSorted[1], yearsSorted[2]],
+        datasets: [{
+            label: 'Wood chucked in a specific year',
+            data: [woodSorted[0], woodSorted[1], woodSorted[2]],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: false,
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Wood chucked'
+                    }
+                }
+            }
+        }
+    };
+
+    var myChart = new Chart(
+        document.getElementById('BARchart'),
+        config
+    );
+}
+
+function otherBoxes(list) {
+    const wood = list.map(item => item.sum);
+    const woodSorted = wood.sort((a, b) => a - b);
+
+    maxWood = document.getElementById('maxWood');
+    maxWood.innerHTML = Math.floor(woodSorted[0]) + " Pounds."
+    min = document.getElementById('minWood');
+    minWood.innerHTML = Math.floor(woodSorted[wood.length - 1]) + " Pounds."
+}

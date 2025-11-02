@@ -5,7 +5,6 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 	<title>The Chucking Dillema </title>
     
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2H8sM6s2y0vM0s3nJ/6q6gkKk5bYvYh2v0v0XcA=" crossorigin=""/>
     <link rel="stylesheet" href="../style/style.css"/>
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-heatmap/leaflet-heatmap.css">
@@ -13,6 +12,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet-heatmap@1.0.0/leaflet-heatmap.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="stylesheet" href="../style/style1.css">
 </head>
@@ -43,10 +43,21 @@
 
 		<section id="dashboard">
 			<div class="dashboard">
-				<div id="wood_chucking_at" class="chart"></div>
-                <div id="wood_chucking_anum" class="chart"></div>
-                <div id="maximum_chucking" class="chart"></div>
-                <div id="minimum_chucking" class="chart"></div>
+				<button id="dataButton">Chuck graph</button>
+				<div id="wood_chucking_at" class="chart">
+					<canvas id="XYchart"></canvas>
+				</div>
+                <div id="wood_chucking_anum" class="chart">
+					<canvas id="BARchart"></canvas>
+				</div>
+                <div id="maximum_chucking" class="chart">
+					<p>Maximum wood chucking</p>
+					<p id="maxWood"></p>
+				</div>
+                <div id="minimum_chucking" class="chart">
+					<p>Minimum wood chucking</p>
+					<p id="minWood"></p>
+				</div>
 			</div>
 		</section>
 	</div>
