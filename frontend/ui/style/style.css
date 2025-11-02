@@ -1,0 +1,164 @@
+
+
+.html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.sections {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sections > section {
+    scroll-snap-align: start;
+    min-height: 100vh;
+}
+
+/* Center the whole display-map section vertically and horizontally */
+#dis_map {
+    display: flex;
+    align-items: flex-start; /* place content toward top of the section */
+    justify-content: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    background-color:#342F2A;
+    padding-top: 2.5rem; /* small top offset so map isn't flush to the very top */
+    padding-bottom: 2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sections { scroll-behavior: auto; }
+}
+
+.hero {
+    background-color: #071022;
+    background-image: url("../Assets/image 4.png");
+    background-repeat: repeat, repeat;
+    background-position: 0 0, 90px 90px;
+    background-size: 300px 300px, 120px 120px;
+    background-position: 0 0;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-align: center;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+
+
+.hero h1 {
+    margin: 0;
+    font-size: 5rem;
+    user-select: none;
+    line-height: 1.1;
+    color: #5A4634;
+    max-width: 1100px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Map section and container: center the map and let it size naturally */
+#mapSection {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+    box-sizing: border-box;
+    
+}
+
+#mapContainer {
+    width: 95%;
+    
+    margin: 0 auto;
+    border: 5px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: #fff;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#map{
+    width: 80%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    max-height: 700px;
+    display: block;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    border-radius: 6px;
+}
+
+@media (max-width: 800px) {
+    #map { width: 95%; }
+    #mapContainer { padding: 0.25rem; }
+}
+
+#dashboard{
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    background: linear-gradient(#342F2A, #5A4634);
+}
+
+.dashboard{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.dis_map{
+    width: 60%;
+    height: 80%;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items:bottom;
+    box-sizing: border-box;
+    margin: 2.5%;
+}
+
+.chart{
+    margin: 2.5%;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+}
+
+#wood_chucking_at {
+  width: 100%;
+  height: 40%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items:center;    /* align cell content to bottom */
+  box-sizing: border-box;
+}
+
+#wood_chucking_anum,
+#maximum_chucking,
+#minimum_chucking {
+  max-width: 25vw;
+  width: 30%; /* grid controls column width */
+  margin: 0 1% 0 1%;
+  margin: auto;
+  aspect-ratio: 1/1;
+}

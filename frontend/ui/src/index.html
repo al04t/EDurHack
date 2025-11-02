@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>The Chucking Dillema </title>
+    
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2H8sM6s2y0vM0s3nJ/6q6gkKk5bYvYh2v0v0XcA=" crossorigin=""/>
+    <link rel="stylesheet" href="../style/style.css"/>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-heatmap/leaflet-heatmap.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-heatmap@1.0.0/leaflet-heatmap.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <link rel="stylesheet" href="../style/style1.css">
+</head>
+<body>
+	<div class="sections">
+		<section class="hero">
+			<h1>How Much wood can a WoodChuck chuck if a Wood Chuck could chuck wood?</h1>
+		</section>
+
+		<section id="dis_map">
+            
+                <div id="mapSection">
+                    <div id="mapContainer">
+                        <div id="map"></div>
+                        <div id="gradient"></div>
+                    </div>
+                    <div id="sliderContainer">
+                    <p style="color: #F9F8EA;">Value: <span id="value"></span></p>
+                        <input type="range" min="2018" max="2528" value="2018" class="slider" id="yearSlider">
+                        
+                    </div>
+                </div>
+			
+		</section>
+
+		<section id="dashboard">
+			<div class="dashboard">
+				<div id="wood_chucking_at" class="chart"></div>
+                <div id="wood_chucking_anum" class="chart"></div>
+                <div id="maximum_chucking" class="chart"></div>
+                <div id="minimum_chucking" class="chart"></div>
+			</div>
+		</section>
+	</div>
+
+    <script src="../src/script.js"></script>
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j7kJT3vGkT1Q6jT+gQbm0gq3k6k6bS+1n6v5Yyo=" crossorigin=""></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+	const map = L.map('map', {center:[40.0,-76.7],zoom:8,scrollWheelZoom:false});
+		const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
+
+		const markers = L.layerGroup().addTo(map);
+
+		function randMarkers(){
+			markers.clearLayers();
+			// sample random points in PA-ish box
+			for(let i=0;i<120;i++){
+				const lat = 39 + Math.random()*2.5;
+				const lon = -80 + Math.random()*4.5;
+				const est = Math.round(Math.random()*10000)/10;
+				const m = L.circleMarker([lat,lon],{radius:6,fillColor:'#1e90ff',color:'#083058',weight:1,fillOpacity:0.85}).bindPopup(`lat:${lat.toFixed(2)} lon:${lon.toFixed(2)}<br>est: ${est}`);
+				markers.addLayer(m);
+			}
+		}
+		randMarkers();
+
+	setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} },250);
+	window.addEventListener('load', ()=>{ try{ map.invalidateSize(); }catch(e){} });
+	window.addEventListener('resize', ()=>{ try{ map.invalidateSize(); }catch(e){} });
+		document.getElementById('btn-zoompa').addEventListener('click',()=>map.setView([40.0,-76.7],8));
+		document.getElementById('btn-default').addEventListener('click',()=>{tiles.addTo(map);randMarkers();toggleActive('btn-default')});
+		document.getElementById('btn-heat').addEventListener('click',()=>{tiles.addTo(map);randMarkers();toggleActive('btn-heat')});
+		function toggleActive(id){document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+		// Chart.js simple demos
+		const ctx1 = document.getElementById('chart1').getContext('2d');
+		const chart1 = new Chart(ctx1,{type:'line',data:{labels:[2018,2019,2020,2021,2022,2023,2024,2025],datasets:[{label:'Estimated total',data:[12000,15000,18000,16000,20000,21000,22000,23000],borderColor:'#1e90ff',backgroundColor:'rgba(30,144,255,0.12)'}]},options:{responsive:true,plugins:{legend:{display:true}}}});
+
+		const ctx2 = document.getElementById('chart2').getContext('2d');
+		const chart2 = new Chart(ctx2,{type:'bar',data:{labels:['North','South','East','West'],datasets:[{label:'Density',data:[120,90,140,70],backgroundColor:['#1e90ff','#00b894','#fdcb6e','#e17055']}]},options:{responsive:true}});
+
+		const ctx3 = document.getElementById('chart3').getContext('2d');
+		const chart3 = new Chart(ctx3,{type:'doughnut',data:{labels:['Sightings','No sightings'],datasets:[{data:[420,780],backgroundColor:['#1e90ff','#223344']}]},options:{responsive:true}});
+
+		// Populate sample table from minimal CSV if available
+		async function loadSample(){
+			try{
+				const resp = await fetch('../../Dataset/cleanData/adjusted_sightings_all_years_minimal.csv');
+				if(!resp.ok) throw new Error('fetch failed');
+				const text = await resp.text();
+				const lines = text.split('\n').slice(0,30);
+				document.getElementById('data-table').innerText = lines.join('\n');
+			}catch(e){
+				document.getElementById('data-table').innerText = 'Could not load local CSV in browser environment (CORS/file). Sample markers used instead.';
+			}
+		}
+		loadSample();
+	</script>
+</body>
+</html>
+

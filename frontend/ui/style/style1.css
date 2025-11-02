@@ -1,0 +1,118 @@
+#mapSection {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding-top: 1rem;
+}
+
+#mapContainer {
+    height: 600px;
+    width: 95%;
+    margin: 0.25rem auto 0 auto;
+    border: 5px solid black;
+    border-radius: 10px;
+    position: relative; /* make gradient absolute positioning relative to this container */
+    padding: 0 !important; /* ensure the inner map can fill the whole container */
+    overflow: hidden; /* clip any children and ensure map fills visibly */
+}
+#map {
+    position: relative !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex;
+    z-index: 0;
+}
+
+
+#sliderContainer {
+    width: 60%;
+    margin: 2rem auto 0; /* move controls further away from the map */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#gradient {
+    position: absolute;
+    width: 75px;
+    height: 300px;
+    /* position relative to #mapContainer - use percent so it scales with container */
+    top: 12%;
+    right: 3%;
+    background-image: linear-gradient(to top, rgba(255,223,0,0.95), rgba(255,64,0,0.9));
+    z-index: 10;
+    pointer-events: none; /* allow clicks through to map */
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+
+#yearSlider {
+    width: 100%;
+}
+
+/* Themed slider to match site colors */
+#yearSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px; /* thicker base for clearer hit area */
+    background: transparent;
+}
+
+#yearSlider:focus { outline: none; }
+
+/* WebKit track */
+#yearSlider::-webkit-slider-runnable-track {
+    height: 14px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #5A4634 0%, #342F2A 100%);
+}
+
+#yearSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -8px; /* centers the thumb vertically over the thicker track */
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ffd54a; /* gold thumb */
+    border: 3px solid rgba(52,47,42,0.95);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    cursor: pointer;
+}
+
+/* Firefox */
+#yearSlider::-moz-range-track {
+    height: 14px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #5A4634 0%, #342F2A 100%);
+}
+
+#yearSlider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ffd54a;
+    border: 3px solid rgba(52,47,42,0.95);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+/* value display */
+/* value display centered above the slider */
+#value {
+        color: #fff;
+        font-weight: 700;
+        text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.15);
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.95rem;
+}
+
+/* make the slider area wider on larger screens */
+@media (min-width: 1200px) {
+    #sliderContainer { width: 50%; }
+}

@@ -18,6 +18,7 @@
 #map {
     height: 100%;
     width: 100%;
+    padding: 20px;
 }
 
 #sliderContainer {
@@ -26,7 +27,7 @@
 }
 
 #gradient {
-    position: absolute;
+    position:relative;
     width: 75px;
     height: 300px;
     top: 100px;
