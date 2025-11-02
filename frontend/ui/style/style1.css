@@ -43,7 +43,7 @@
     /* position relative to #mapContainer - use percent so it scales with container */
     top: 20%;
     right: 3%;
-    background-image: linear-gradient(to top, rgba(255,223,0,0.95), rgba(255,64,0,0.9));
+    background-image: linear-gradient(to top, rgba(255,223,0,0.95), rgb(255, 0, 0));
     z-index: 10;
     pointer-events: none; /* allow clicks through to map */
     border-radius: 6px;
