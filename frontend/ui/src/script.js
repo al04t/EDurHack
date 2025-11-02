@@ -13,7 +13,8 @@ yearSlider.oninput = function() {
 }
 
 button.onclick = async function() {
-    yearSums = await sumYears(initialYear);
+    yearSums = await sumYears(initialYear, false);
+    yearSumsAll = await sumYears(initialYear, true);
     plotXYchart(yearSums);
     plotBARchart(yearSums);
     otherBoxes(yearSums);
@@ -50,8 +51,10 @@ function fetchYear(year) {
     .catch(error => console.error('Error reading CSV:', error));
 }
 
-async function sumYears(year) {
+async function sumYears(year, all) {
     const promises = [];
+    var sumGlobal = 0;
+    if (!all) {
     for (let i = year; i <= maxYear; i = i + 20) {
         console.log("iterate")
         address = '/Dataset/cleanData/woodchuck_forecast_hundreds.csv';
@@ -81,10 +84,37 @@ async function sumYears(year) {
         .catch(error => console.error('Error reading CSV:', error));
         promises.push(promise);
     }
-
     await Promise.all(promises);
     yearSums.sort((a, b) => a.year - b.year);
     return yearSums;
+
+    } else if (all) {
+        console.log("iterate")
+        address = '/Dataset/cleanData/woodchuck_forecast_hundreds.csv';
+        console.log('Fetching from:', address);
+        const promise = fetch(address)
+            .then(response => response.text())
+            .then(csvContent => {
+                return new Promise((resolve, reject) => {
+                Papa.parse(csvContent, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        dataObject = results.data;
+                        for (let j = 0; j < dataObject.length - 1; j++) {
+                            sumGlobal = sumGlobal + dataObject[j].wood_chucked_per_woodchuck_lbs
+                        }
+                        resolve();
+                    }
+                });
+            })
+            })
+        .catch(error => console.error('Error reading CSV:', error));
+        promises.push(promise);
+    }
+
+    await Promise.all(promises);
+    return sumGlobal;
 }
 
 var baseLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.{ext}', {
