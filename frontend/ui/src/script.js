@@ -181,7 +181,7 @@ const borderCoordinates = [
 
 var polygon = L.polygon(borderCoordinates, {
     color: '#880000',
-    weight: 7,
+    weight: 3,
     fillOpacity: 0,
 });
 
