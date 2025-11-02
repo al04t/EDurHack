@@ -43,6 +43,13 @@
 		<section id="dashboard">
 			<div class="dashboard">
 				<button id="dataButton">Chuck graph</button>
+				<div id="dashboardCoordControls" style="display:flex;justify-content:center;gap:12px;align-items:center;margin:8px 0;flex-wrap:wrap;">
+					<label for="dashLat" class="dashboard-label">Lat</label>
+					<input id="dashLat" class="dash-input" type="number" step="0.0001" placeholder="40.0" title="Press Enter to center, Esc to clear">
+					<label for="dashLon" class="dashboard-label">Lon</label>
+					<input id="dashLon" class="dash-input" type="number" step="0.0001" placeholder="-76.7" title="Press Enter to center, Esc to clear">
+					<div style="flex-basis:100%;height:0;"></div>
+				</div>
 				<div id="wood_chucking_at" class="chart">
 					<canvas id="XYchart"></canvas>
 				</div>
@@ -68,7 +75,6 @@
 
 		function randMarkers(){
 			markers.clearLayers();
-			// sample random points in PA-ish box
 			for(let i=0;i<120;i++){
 				const lat = 39 + Math.random()*2.5;
 				const lon = -80 + Math.random()*4.5;
@@ -99,7 +105,7 @@
 			if(!area || !fallArea || !pileRoot) return;
 
 			area.style.position = 'relative';
-			// add static legend and scattered decorative icons
+
 			function createLegend(){
 				let existing = document.getElementById('pileLegend');
 				if(existing) return;
@@ -111,7 +117,6 @@
 			}
 
 			function scatterDecoration(count=12){
-				// simple uniform scatter of decorative images
 				document.querySelectorAll('.decor-img').forEach(n=>n.remove());
 				const areaRectW = Math.max(200, area.clientWidth);
 				const areaRectH = Math.max(200, area.clientHeight);
@@ -133,14 +138,12 @@
 			const IMG = '../Assets/pngwing.com.png';
 			const IMG_SIZE = 64;
 
-			// Multi-pile configuration: create several pile anchors across the area and manage slots per-pile
 			const PILE_COUNT = 3;
 			const piles = [];
 			const areaW = area.clientWidth;
 			const spread = Math.max(IMG_SIZE * 4, Math.min(areaW * 0.7, areaW - IMG_SIZE * 4));
 			for(let p=0;p<PILE_COUNT;p++){
 				const frac = (PILE_COUNT===1) ? 0.5 : (p / (PILE_COUNT-1));
-				// centers evenly spread across -spread/2 .. +spread/2 relative to pileRoot center
 				const centerX = Math.round(-spread/2 + frac * spread);
 				const el = document.createElement('div');
 				el.className = 'pile-column';
@@ -170,7 +173,6 @@
 				for(let r=0;r<pile.rowsTop.length;r++){
 					if(pile.filledCounts[r] < pile.rowsTop[r]){
 						const pos = pile.filledCounts[r];
-						// reserve immediately
 						pile.filledCounts[r] = pile.filledCounts[r] + 1;
 						return {row:r, pos: pos};
 					}
@@ -197,7 +199,6 @@
 				img.className = 'falling-img';
 				img.style.width = IMG_SIZE + 'px';
 				img.style.height = IMG_SIZE + 'px';
-				// start near a centered x position with a small random offset
 				const containerW = area.clientWidth;
 				const centerX = Math.round(containerW/2 - IMG_SIZE/2);
 				const startLeft = centerX + (Math.random()*120 - 60);
@@ -205,22 +206,16 @@
 				img.style.top = '-80px';
 				fallArea.appendChild(img);
 
-				// pick a random pile and reserve a slot top->bottom in that pile
 				const pileIndex = Math.floor(Math.random() * piles.length);
 				const pile = piles[pileIndex];
 				ensureRowsFor(pile, pile.el.children.length + 1);
 				const reservedSlot = findSlotForNewInPile(pile);
 				const finalBottom = slotToXY(pile, reservedSlot.row, reservedSlot.pos, IMG_SIZE).bottom;
+				const targetTop = area.clientHeight - IMG_SIZE - finalBottom; 
+				const translateY = targetTop - (-80); 
 
-				// compute translateY distance from starting top (-80) to target top
-				const targetTop = area.clientHeight - IMG_SIZE - finalBottom; // pixels from top of area
-				const translateY = targetTop - (-80); // startTop is -80
-
-				// faster drop: much shorter duration for snappier animation
-				// range ~120ms - 240ms
 				const duration = 120 + Math.random()*120;
 
-				// animate vertical drop (horizontal will be adjusted when moved into pileRoot)
 				const anim = img.animate([
 					{ transform: 'translateY(0) rotate(0deg)', opacity:1 },
 					{ transform: `translateY(${translateY}px) rotate(${10 + Math.random()*40}deg)`, opacity:1 }
@@ -231,16 +226,13 @@
 					img.className = 'pile-item';
 					img.style.top = 'auto';
 					img.style.right = 'auto';
-					// append to the chosen pile element so piles are separated
 					pile.el.appendChild(img);
 					const row = reservedSlot.row;
 					const pos = reservedSlot.pos;
 					const s = slotToXY(pile, row, pos, IMG_SIZE);
-					// compute left relative to pile.el (pile.centerX is applied to pile.el itself)
 					const leftRel = s.x - pile.centerX;
 					img.style.left = leftRel + 'px';
 					img.style.bottom = s.bottom + 'px';
-					// mark as fixed and store metadata (including pile index)
 					img.dataset.fixed = '1';
 					img.dataset.row = String(row);
 					img.dataset.pos = String(pos);
@@ -250,22 +242,20 @@
 
 			startBtn.addEventListener('click', async ()=>{
 				if(intervalId) return;
-				// use the global sumYears function (from ../src/script.js) to get total wood
+
 				let total = 0;
 				try{
-					// compute year and call sumYears(year, true) so it returns the numeric total
 					const yearParam = (typeof initialYear !== 'undefined') ? initialYear : Number(document.getElementById('yearSlider').value);
 					total = await sumYears(yearParam, true);
 					console.log('sumYears result:', total);
 				}catch(e){
 					console.warn('sumYears unavailable or failed, falling back to single drop', e);
 				}
-				// determine number of logs: one per 10k wood units
 				let target = Math.max(1, Math.floor((total || 0) / 10000));
 				console.log('Starting rain — total wood:', total, 'dropping logs:', target);
 
 				let dropped = 0;
-				// helper to show result text after all drops complete
+
 				function showResult(count){
 					let existing = document.getElementById('dropResult');
 					if(!existing){
@@ -278,8 +268,6 @@
 					existing.classList.add('show');
 	
 				}
-
-				// drop immediately one, then schedule remaining faster
 				dropOne(); dropped += 1;
 				if(dropped >= target){
 					showResult(target);
@@ -304,11 +292,9 @@
 			});
 
 			function layoutPyramid(root, size){
-				// For each pile, rebuild its filledCounts from DOM and assign any un-fixed items
 				for(const pile of piles){
 					const items = Array.from(pile.el.children);
 					if(items.length === 0) continue;
-					// rebuild filledCounts array for this pile
 					pile.filledCounts = new Array(pile.rowsTop.length).fill(0);
 					for(const it of items){
 						if(it.dataset && it.dataset.row){
@@ -316,7 +302,6 @@
 							if(!Number.isNaN(r)) pile.filledCounts[r] = (pile.filledCounts[r] || 0) + 1;
 						}
 					}
-					// assign un-fixed items into the next available slots for this pile
 					for(const it of items){
 						if(it.dataset && it.dataset.fixed === '1') continue;
 						ensureRowsFor(pile, items.length);

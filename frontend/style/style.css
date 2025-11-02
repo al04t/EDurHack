@@ -40,3 +40,33 @@
 #yearSlider {
     width: 100%;
 }
+
+/* Dashboard coordinate input styling */
+.dash-input {
+    width: 140px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #5A4634; /* page brown */
+    color: #F9F8EA; /* light text used elsewhere */
+    box-shadow: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.dash-input:focus {
+    outline: none;
+    border-color: rgba(249,248,234,0.25);
+    box-shadow: 0 6px 18px rgba(90,70,52,0.12);
+    background: #6b5948;
+}
+.dashboard-hint {
+    text-align: center;
+    color: #F9F8EA;
+    font-size: 0.85rem;
+    margin-top: 6px;
+}
+/* labels for the dashboard inputs */
+.dashboard-label{
+    color: #F9F8EA;
+    font-weight:700;
+}

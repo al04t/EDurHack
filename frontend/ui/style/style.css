@@ -1,5 +1,4 @@
 
-
 .html, body {
     height: 100%;
     margin: 0;
@@ -18,15 +17,14 @@
     min-height: 100vh;
 }
 
-/* Center the whole display-map section vertically and horizontally */
 #dis_map {
     display: flex;
-    align-items: flex-start; /* place content toward top of the section */
+    align-items: flex-start; 
     justify-content: center;
     min-height: 100vh;
     box-sizing: border-box;
     background-color:#342F2A;
-    padding-top: 2.5rem; /* small top offset so map isn't flush to the very top */
+    padding-top: 2.5rem; 
     padding-bottom: 2rem;
 }
 
@@ -64,7 +62,6 @@
     text-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* Map section and container: center the map and let it size naturally */
 #mapSection {
     width: 100%;
     display: flex;
@@ -196,7 +193,7 @@
   width: 100%;
   height: 70%;
   display: flex;
-  align-items: center;    /* align cell content to bottom */
+  align-items: center;   
   box-sizing: border-box;
 }
 
@@ -204,7 +201,7 @@
 #maximum_chucking,
 #minimum_chucking {
   max-width: 25vw;
-  width: 30%; /* grid controls column width */
+  width: 30%; 
   margin: 0 1% 0 1%;
   margin: auto;
   aspect-ratio: 1/1;
@@ -215,12 +212,12 @@
     height: 100vh;
     display: flex;  
     background: linear-gradient( #5A4634, #342F2A);
-    align-items: center;    /* align cell content to bottom */
+    align-items: center;  
     box-sizing: border-box;
 
 }
 
-/* Falling images animation area */
+
 #mayTheChuckBe { position: relative; overflow: hidden; }
 
 .falling-img {
@@ -239,7 +236,6 @@
     height: 64px;
 }
 
-/* pile root centered at bottom of section */
 #pileRoot {
     position: absolute;
     left: 50%;
@@ -250,7 +246,7 @@
     height: auto;
 }
 
-/* optional small control button in the section */
+
 .may-control {
     position: absolute;
     right: 1rem;
@@ -264,7 +260,7 @@
     cursor: pointer;
 }
 
-/* Legend in corner describing unit */
+
 .pile-legend{
     position: absolute;
     left: 1rem;
@@ -281,16 +277,14 @@
 }
 .pile-legend .legend-icon{ width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
 
-/* Decorative scattered images */
 .decor-img{
     position: absolute;
-    z-index: 5; /* behind controls and piles */
+    z-index: 5;
     opacity: 0.85;
     pointer-events: none;
     filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
 }
 
-/* removed complex gradient decorations to keep visuals simple */
 
 #mapSection {
     width: 100%;
@@ -307,9 +301,9 @@
     margin: 0.25rem auto 0 auto;
     border: 5px solid black;
     border-radius: 10px;
-    position: relative; /* make gradient absolute positioning relative to this container */
-    padding: 0 !important; /* ensure the inner map can fill the whole container */
-    overflow: hidden; /* clip any children and ensure map fills visibly */
+    position: relative;
+    padding: 0 !important; 
+    overflow: hidden; 
 }
 #map {
     position: relative !important;
@@ -323,7 +317,7 @@
 
 #sliderContainer {
     width: 60%;
-    margin: 2rem auto 0; /* move controls further away from the map */
+    margin: 2rem auto 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -334,12 +328,11 @@
     position: absolute;
     width: 30px;
     height: 300px;
-    /* position relative to #mapContainer - use percent so it scales with container */
     top: 20%;
     right: 3%;
     background-image: linear-gradient(to top, rgba(255,223,0,0.95), rgb(255, 0, 0));
     z-index: 10;
-    pointer-events: none; /* allow clicks through to map */
+    pointer-events: none; 
     border-radius: 6px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
@@ -349,17 +342,17 @@
     width: 100%;
 }
 
-/* Themed slider to match site colors */
+
 #yearSlider {
     -webkit-appearance: none;
     appearance: none;
-    height: 22px; /* thicker base for clearer hit area */
+    height: 22px;
     background: transparent;
 }
 
 #yearSlider:focus { outline: none; }
 
-/* WebKit track */
+
 #yearSlider::-webkit-slider-runnable-track {
     height: 14px;
     border-radius: 10px;
@@ -369,17 +362,17 @@
 #yearSlider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    margin-top: -8px; /* centers the thumb vertically over the thicker track */
+    margin-top: -8px;
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #ffd54a; /* gold thumb */
+    background: #ffd54a; 
     border: 3px solid rgba(52,47,42,0.95);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     cursor: pointer;
 }
 
-/* Firefox */
+
 #yearSlider::-moz-range-track {
     height: 14px;
     border-radius: 10px;
@@ -395,8 +388,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 
-/* value display */
-/* value display centered above the slider */
+
 #value {
         color: #fff;
         font-weight: 700;
@@ -407,12 +399,28 @@
         font-size: 0.95rem;
 }
 
-/* make the slider area wider on larger screens */
+.dash-input{
+    min-width: 140px;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.04); 
+    color: #F9F8EA;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+}
+.dash-input::placeholder{ color: rgba(249,248,234,0.7); }
+.dash-input:focus{ outline: none; border-color: rgba(255,213,74,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.28); background: rgba(255,255,255,0.06); }
+.dashboard-label{ color: #F9F8EA; font-weight:700; margin-right:6px; }
+.dashboard-hint{ color: #F9F8EA; font-size:0.85rem; margin-top:6px; }
+
+
 @media (min-width: 1200px) {
     #sliderContainer { width: 50%; }
 }
 
-/* popup result after drops */
+
 .drop-result{
     position: absolute;
     left: 50%;

@@ -12,13 +12,7 @@ yearSlider.oninput = function() {
     fetchYear(this.value);
 }
 
-button.onclick = async function() {
-    yearSums = await sumYears(initialYear, false);
-    yearSumsAll = await sumYears(initialYear, true);
-    plotXYchart(yearSums);
-    plotBARchart(yearSums);
-    otherBoxes(yearSums);
-}
+
 
 function fetchYear(year) {
     address = '/Dataset/cleanData/woodchuck_forecast_hundreds.csv';
@@ -227,64 +221,168 @@ function plotXYchart(list) {
             }
         }
     };
-
-    let myChart = new Chart(
+    try{
+        if(window.xyChart && typeof window.xyChart.destroy === 'function'){
+            window.xyChart.destroy();
+        }
+    }catch(e){ console.warn('Failed to destroy previous xyChart', e); }
+    window.xyChart = new Chart(
         document.getElementById('XYchart'),
         config
     );
 }
 
-function plotBARchart(list) {
-    const years = list.map(item => item.year);
-    const yearsSorted = years.sort((a, b) => a - b);
-    const wood = list.map(item => item.sum);
-    const woodSorted = wood.sort((a, b) => a - b);
+    try{
+        if (!window.barChart) window.barChart = null;
+    }catch(e){}
 
-    const data = {
-        labels: [yearsSorted[0], yearsSorted[1], yearsSorted[2]],
-        datasets: [{
-            label: 'Wood chucked in a specific year',
-            data: [woodSorted[0], woodSorted[1], woodSorted[2]],
-            borderColor: '#DA3434',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            fill: false,
-        }]
-    };
 
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Year'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Wood chucked'
+
+
+async function plotXYchartForCoord(lat, lon, radiusDeg = 0.05) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    const address = '/Dataset/cleanData/woodchuck_forecast_hundreds.csv';
+    try {
+        const resp = await fetch(address);
+        const csv = await resp.text();
+        return new Promise((resolve)=>{
+            Papa.parse(csv, { header: true, dynamicTyping: true, complete(results){
+                const data = results.data || [];
+                const r2 = radiusDeg * radiusDeg;
+                const yearMap = new Map();
+
+                for (let i=0;i<data.length;i++){
+                    const row = data[i];
+                    if (!row) continue;
+                    const rlat = Number(row.latitude);
+                    const rlon = Number(row.longitude);
+                    const y = Number(row.year);
+                    if (!Number.isFinite(rlat) || !Number.isFinite(rlon) || !Number.isFinite(y)) continue;
+                    const dlat = rlat - lat;
+                    const dlon = rlon - lon;
+                    if ((dlat*dlat + dlon*dlon) <= r2){
+                        const val = Number(row.total_wood_chucked_lbs ?? row.wood_chucked_per_woodchuck_lbs ?? 0) || 0;
+                        yearMap.set(y, (yearMap.get(y) || 0) + val);
                     }
                 }
+
+                let list = Array.from(yearMap.entries()).map(([year,sum])=>({ year: Number(year), sum: sum }));
+                list.sort((a,b)=>a.year - b.year);
+
+
+                if (list.length === 0){
+                    const best = new Map(); 
+                    for (let i=0;i<data.length;i++){
+                        const row = data[i]; if(!row) continue;
+                        const rlat = Number(row.latitude); const rlon = Number(row.longitude); const y = Number(row.year);
+                        if (!Number.isFinite(rlat) || !Number.isFinite(rlon) || !Number.isFinite(y)) continue;
+                        const d2 = (rlat-lat)*(rlat-lat) + (rlon-lon)*(rlon-lon);
+                        const val = Number(row.total_wood_chucked_lbs ?? row.wood_chucked_per_woodchuck_lbs ?? 0) || 0;
+                        const cur = best.get(y);
+                        if (!cur || d2 < cur.dist){ best.set(y, { dist: d2, val }); }
+                    }
+                    list = Array.from(best.entries()).map(([year,obj])=>({ year: Number(year), sum: obj.val }));
+                    list.sort((a,b)=>a.year - b.year);
+                }
+
+            
+                try{ plotXYchart(list); }catch(e){ console.error('plotXYchart failed', e); }
+                resolve(list);
+            }});
+        });
+    } catch (e) {
+        console.error('Error fetching CSV for coord plot', e);
+        return [];
+    }
+}
+
+
+window.addEventListener('load', ()=>{
+    try{
+        const latInput = document.getElementById('dashLat');
+        const lonInput = document.getElementById('dashLon');
+        function pointInPoly(lat, lon, poly){
+            let x = lon, y = lat;
+            let inside = false;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+                const xi = poly[i][1], yi = poly[i][0];
+                const xj = poly[j][1], yj = poly[j][0];
+                const intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi + 0.0) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        function closestPointOnSegment(px, py, ax, ay, bx, by){
+            const vx = bx - ax, vy = by - ay;
+            const wx = px - ax, wy = py - ay;
+            const c1 = vx*wx + vy*wy;
+            if (c1 <= 0) return [ax, ay];
+            const c2 = vx*vx + vy*vy;
+            if (c2 <= c1) return [bx, by];
+            const t = c1 / c2;
+            return [ax + t*vx, ay + t*vy];
+        }
+
+        function adjustToPABorder(lat, lon){
+            if (pointInPoly(lat, lon, borderCoordinates)) return { lat, lon, adjusted: false };
+            let best = null;
+            let bestDist2 = Infinity;
+            for (let i=0;i<borderCoordinates.length;i++){
+                const a = borderCoordinates[i];
+                const b = borderCoordinates[(i+1) % borderCoordinates.length];
+                // a and b are [lat, lon]
+                const [cx, cy] = closestPointOnSegment(lon, lat, a[1], a[0], b[1], b[0]);
+                const dx = cx - lon; const dy = cy - lat;
+                const d2 = dx*dx + dy*dy;
+                if (d2 < bestDist2){ bestDist2 = d2; best = { lat: cy, lon: cx }; }
+            }
+            return { lat: best.lat, lon: best.lon, adjusted: true };
+        }
+        if(!latInput || !lonInput) return;
+        let lastMarker = null;
+        function clearMarker(){ if(lastMarker) try{ map.removeLayer(lastMarker); }catch(e){} lastMarker = null; }
+        [latInput, lonInput].forEach(inp => {
+            inp.addEventListener('keydown', async (ev)=>{
+                if (ev.key === 'Enter'){
+                    ev.preventDefault();
+                    let lat = parseFloat(latInput.value || latInput.placeholder);
+                    let lon = parseFloat(lonInput.value || lonInput.placeholder);
+                    if (Number.isFinite(lat) && Number.isFinite(lon)){
+                        const adj = adjustToPABorder(lat, lon);
+                        if (adj.adjusted){ lat = adj.lat; lon = adj.lon; }
+                        try{ clearMarker(); }catch(e){}
+                        lastMarker = L.marker([lat, lon]).addTo(map).bindPopup(`Lat: ${lat.toFixed(4)}<br>Lon: ${lon.toFixed(4)}` + (adj.adjusted? ' (rounded to PA border)':'' )).openPopup();
+                        map.setView([lat, lon], 12);
+                        await plotXYchartForCoord(lat, lon);
+                    }
+                } else if (ev.key === 'Escape'){
+                    ev.preventDefault();
+                    latInput.value = '';
+                    lonInput.value = '';
+                    clearMarker();
+                }
+            });
+        });
+
+        button.onclick = async function() {
+            let lat = parseFloat(latInput.value || latInput.placeholder);
+            let lon = parseFloat(lonInput.value || lonInput.placeholder);
+            if (Number.isFinite(lat) && Number.isFinite(lon)){
+                const adj = adjustToPABorder(lat, lon);
+                if (adj.adjusted){ lat = adj.lat; lon = adj.lon; }
+                try{ clearMarker(); }catch(e){}
+                lastMarker = L.marker([lat, lon]).addTo(map).bindPopup(`Lat: ${lat.toFixed(4)}<br>Lon: ${lon.toFixed(4)}` + (adj.adjusted? ' (rounded to PA border)':'' )).openPopup();
+                map.setView([lat, lon], 12);
+                await plotXYchartForCoord(lat, lon);
+            } else {
+    
+                yearSums = await sumYears(initialYear, false);
+                yearSumsAll = await sumYears(initialYear, true);
+                plotXYchart(yearSums);
+                plotBARchart(yearSums);
+                otherBoxes(yearSums);
             }
         }
-    };
-
-    var myChart = new Chart(
-        document.getElementById('BARchart'),
-        config
-    );
-}
-
-function otherBoxes(list) {
-    const wood = list.map(item => item.sum);
-    const woodSorted = wood.sort((a, b) => a - b);
-
-    maxWood = document.getElementById('maxWood');
-    maxWood.innerHTML = Math.floor(woodSorted[0]) + " Pounds."
-    min = document.getElementById('minWood');
-    minWood.innerHTML = Math.floor(woodSorted[wood.length - 1]) + " Pounds."
-}
+    }catch(e){ console.warn('Failed to wire dashboard inputs', e); }
+});
