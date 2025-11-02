@@ -23,19 +23,22 @@
 		</section>
 
 		<section id="dis_map">
-            
+                <img id="logo" style="width: 50px;height: 50px;" src="../Assets/image.png" alt="Woodchuck Logo" />
                 <div id="mapSection">
+                    <img id="logo" style="width: 50px;height: 50px;" src="../Assets/image.png" alt="Woodchuck Logo" />
                     <div id="mapContainer">
+                        
                         <div id="map"></div>
-                        <div id="gradient"></div>
+                        <div id="gradient" style="color:#5A4634;writing-mode: vertical-rl;text-orientation: sideways; display: flex; justify-content: center; align-items: center;">Chuck Strength</div>
                     </div>
                     <div id="sliderContainer">
                     <p style="color: #F9F8EA;">Value: <span id="value"></span></p>
                         <input type="range" min="2018" max="2528" value="2018" class="slider" id="yearSlider">
-                        
+             
+                         <img id="logo" style="width: 50px;height: 50px; " src="../Assets/image.png" alt="Woodchuck Logo" />
                     </div>
                 </div>
-			
+                <img id="logo" style="width: 50px;height: 50px;transform: rotate(90deg);transform-origin: center;" src="../Assets/image.png" alt="Woodchuck Logo" />
 		</section>
 
 		<section id="dashboard">
@@ -78,29 +81,6 @@
 		document.getElementById('btn-heat').addEventListener('click',()=>{tiles.addTo(map);randMarkers();toggleActive('btn-heat')});
 		function toggleActive(id){document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
-		// Chart.js simple demos
-		const ctx1 = document.getElementById('chart1').getContext('2d');
-		const chart1 = new Chart(ctx1,{type:'line',data:{labels:[2018,2019,2020,2021,2022,2023,2024,2025],datasets:[{label:'Estimated total',data:[12000,15000,18000,16000,20000,21000,22000,23000],borderColor:'#1e90ff',backgroundColor:'rgba(30,144,255,0.12)'}]},options:{responsive:true,plugins:{legend:{display:true}}}});
-
-		const ctx2 = document.getElementById('chart2').getContext('2d');
-		const chart2 = new Chart(ctx2,{type:'bar',data:{labels:['North','South','East','West'],datasets:[{label:'Density',data:[120,90,140,70],backgroundColor:['#1e90ff','#00b894','#fdcb6e','#e17055']}]},options:{responsive:true}});
-
-		const ctx3 = document.getElementById('chart3').getContext('2d');
-		const chart3 = new Chart(ctx3,{type:'doughnut',data:{labels:['Sightings','No sightings'],datasets:[{data:[420,780],backgroundColor:['#1e90ff','#223344']}]},options:{responsive:true}});
-
-		// Populate sample table from minimal CSV if available
-		async function loadSample(){
-			try{
-				const resp = await fetch('../../Dataset/cleanData/adjusted_sightings_all_years_minimal.csv');
-				if(!resp.ok) throw new Error('fetch failed');
-				const text = await resp.text();
-				const lines = text.split('\n').slice(0,30);
-				document.getElementById('data-table').innerText = lines.join('\n');
-			}catch(e){
-				document.getElementById('data-table').innerText = 'Could not load local CSV in browser environment (CORS/file). Sample markers used instead.';
-			}
-		}
-		loadSample();
 	</script>
 </body>
 </html>
