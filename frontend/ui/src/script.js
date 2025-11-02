@@ -170,7 +170,7 @@ function plotXYchart(list) {
         datasets: [{
             label: 'Wood chucked in a specific area',
             data: wood,
-            borderColor: 'rgb(75, 192, 192)',
+            borderColor: '#DA3434',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             fill: false,
         }]
@@ -215,7 +215,7 @@ function plotBARchart(list) {
         datasets: [{
             label: 'Wood chucked in a specific year',
             data: [woodSorted[0], woodSorted[1], woodSorted[2]],
-            borderColor: 'rgb(75, 192, 192)',
+            borderColor: '#DA3434',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             fill: false,
         }]
