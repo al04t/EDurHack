@@ -37,7 +37,7 @@
 
 #gradient {
     position: absolute;
-    width: 75px;
+    width: 30px;
     height: 300px;
     /* position relative to #mapContainer - use percent so it scales with container */
     top: 12%;
