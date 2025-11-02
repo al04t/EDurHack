@@ -39,7 +39,7 @@ df_merged['wood_chucked_per_woodchuck_lbs'] = (
 )
 
 df_merged['total_wood_chucked_lbs'] = (
-    df_merged['wood_chucked_per_woodchuck_lbs'] * df_merged['estimated_woodchuck_population']
+    df_merged['wood_chucked_per_woodchuck_lbs'] * df_merged['estimated_woodchuck_population'] * 365
 )
 
 df_merged = df_merged[df_merged['year'] != 2025]

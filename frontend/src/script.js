@@ -19,7 +19,7 @@ function fetchYear(year) {
                 dynamicTyping: true,
                 complete: function(results) {
                     dataObject = results.data;
-                    var testData = {max: 15000, data: []}
+                    var testData = {max: 7500, data: []}
                     console.log(dataObject)
                     for (let i = 0; i < dataObject.length - 1; i++) {
                         if (dataObject[i].year == year) {
