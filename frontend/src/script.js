@@ -1,7 +1,7 @@
 var yearSlider = document.getElementById("yearSlider");
 var output = document.getElementById("value");
-output.innerHTML = 2018;
-fetchYear(2018);
+output.innerHTML = yearSlider.value;
+fetchYear(yearSlider.value);
 
 yearSlider.oninput = function() {
     output.innerHTML = this.value
@@ -9,7 +9,7 @@ yearSlider.oninput = function() {
 }
 
 function fetchYear(year) {
-    address = '/Dataset/cleanData/woodchuck_forecast_all.csv';
+    address = '/Dataset/cleanData/woodchucks_with_wood_volume_future.csv';
     console.log('Fetching from:', address);
     fetch(address)
         .then(response => response.text())
